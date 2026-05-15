@@ -7,3 +7,5 @@ INFO:     127.0.0.1:43198 - "GET /v1/health HTTP/1.1" 200 OK
 WARNING:  Invalid HTTP request received.
 INFO:     127.0.0.1:32972 - "GET /v1/health HTTP/1.1" 200 OK
 INFO:     127.0.0.1:38158 - "GET /v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37238 - "GET /v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55126 - "GET /v1/health HTTP/1.1" 200 OK
