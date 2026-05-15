@@ -1,0 +1,29 @@
+# Sample doc-audit.yml — drop this in `.github/doc-audit.yml` and adjust paths
+# to match your repository.
+targets:
+  - name: cips
+    paths:
+      - refs/cips/**
+      - refs/whitepaper/**
+    glossary: refs/glossary.md
+    related_code:
+      - node/
+      - runner/
+    dimensions:
+      consistency:  { enabled: true, severity_gate: block }
+      security:     { enabled: true, severity_gate: warn }
+      technical:    { enabled: true, severity_gate: warn }
+      architecture: { enabled: true, severity_gate: warn }
+      style:        { enabled: false }
+
+  - name: user-docs
+    paths:
+      - docs/user/**
+    dimensions:
+      consistency: { enabled: true, severity_gate: warn }
+      style:       { enabled: true, severity_gate: warn }
+
+global:
+  max_usd_per_run: 2.00
+  comment_marker: doc-audit-bot
+  ignore_file: .doc-audit-ignore

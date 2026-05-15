@@ -1,0 +1,10 @@
+[Unit]
+Description=Doc Audit — refresh mirror repos
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/workspace/audit-bot
+Environment=PATH=%h/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+EnvironmentFile=-%h/workspace/audit-bot/.state/env
+ExecStart=%h/workspace/audit-bot/bin/pull-mirrors.sh

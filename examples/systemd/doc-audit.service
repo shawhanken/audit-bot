@@ -1,0 +1,23 @@
+[Unit]
+Description=Doc Audit Service (audit-bot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# bin/up.sh is idempotent and forks both uvicorn + cloudflared then exits.
+# Type=oneshot with RemainAfterExit makes the unit "active" until ExecStop;
+# the watchdog timer is what restarts the bundle if a child dies.
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/workspace/audit-bot
+# %h = $HOME. Keep PATH compact and include ~/bin where cloudflared lives.
+Environment=PATH=%h/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Optional overrides (DOC_AUDIT_CONSUMERS, TUNNEL_BIN, …) live here.
+EnvironmentFile=-%h/workspace/audit-bot/.state/env
+ExecStart=%h/workspace/audit-bot/bin/up.sh --no-pull
+ExecStop=%h/workspace/audit-bot/bin/down.sh
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

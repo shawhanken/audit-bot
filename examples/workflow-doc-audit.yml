@@ -1,0 +1,65 @@
+# Drop-in workflow for consumer repositories.
+#
+# Copy to `.github/workflows/doc-audit.yml`, then:
+#   1. Ensure `.github/doc-audit.yml` exists (see examples/doc-audit.yml).
+#   2. Set repository secret DOC_AUDIT_TOKEN (issued by the audit server admin).
+#   3. Set repository variable DOC_AUDIT_SERVER_URL to the server base URL.
+#   4. (Optional) Set ANTHROPIC_API_KEY secret for local-fallback when the
+#      server is unreachable.
+#
+# Branch protection: once you're confident, add `Doc Audit / 一致性`
+# (and any other gated dimensions) to the required-checks list.
+name: Doc Audit
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'docs/**'
+      - 'refs/**'
+      - '.github/doc-audit.yml'
+  # PR commands (/audit rerun, /audit ignore, /audit explain).
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  # Uncomment when enable_sarif=true:
+  # security-events: write
+
+jobs:
+  audit:
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       startsWith(github.event.comment.body, '/audit'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve PR base/head for issue_comment events
+        if: github.event_name == 'issue_comment'
+        run: |
+          gh pr checkout ${{ github.event.issue.number }}
+          echo "GITHUB_PR_NUMBER=${{ github.event.issue.number }}" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - uses: your-org/doc-audit-action@v1
+        with:
+          config: .github/doc-audit.yml
+          server_url: ${{ vars.DOC_AUDIT_SERVER_URL }}
+          server_token: ${{ secrets.DOC_AUDIT_TOKEN }}
+          anthropic_key_fallback: ${{ secrets.ANTHROPIC_API_KEY }}
+          enable_sarif: "false"
+
+      # SARIF upload is intentionally separate from the bundled action so we
+      # use the canonical first-party uploader.
+      - name: Upload SARIF
+        if: always() && hashFiles('**/doc-audit_*.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ runner.temp }}/doc-audit

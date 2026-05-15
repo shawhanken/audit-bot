@@ -1,0 +1,14 @@
+[Unit]
+Description=Run Doc Audit watchdog every minute
+Requires=doc-audit.service
+
+[Timer]
+# Wait 2 minutes after boot to let uvicorn + cloudflared come up fully.
+OnBootSec=120s
+# Then check every minute.
+OnUnitActiveSec=60s
+AccuracySec=10s
+Unit=doc-audit-watchdog.service
+
+[Install]
+WantedBy=timers.target
